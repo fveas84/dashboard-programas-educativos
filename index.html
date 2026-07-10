@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Dashboard de Programas Educativos</title>
+<style>
+body{font-family:system-ui,-apple-system,sans-serif;margin:0;padding:24px;background:#f4f7fb;color:#172033}
+#loading{max-width:620px;margin:15vh auto;background:white;border:1px solid #d7deea;border-radius:16px;padding:24px;text-align:center}
+</style>
+</head>
+<body>
+<div id="loading"><h1>Dashboard de Programas Educativos</h1><p>Cargando datos…</p></div>
+<script>
+(async()=>{
+  try{
+    const urls=[1,2,3,4].map(n=>"dashboard-part-"+n+".txt");
+    const parts=await Promise.all(urls.map(async url=>{
+      const response=await fetch(url,{cache:"no-store"});
+      if(!response.ok) throw new Error("No se pudo cargar "+url);
+      return (await response.text()).trim();
+    }));
+    const binary=atob(parts.join(""));
+    const bytes=Uint8Array.from(binary,c=>c.charCodeAt(0));
+    const stream=new Blob([bytes]).stream().pipeThrough(new DecompressionStream("gzip"));
+    const dashboard=await new Response(stream).text();
+    document.open();
+    document.write(dashboard);
+    document.close();
+  }catch(error){
+    document.getElementById("loading").innerHTML="<h1>No se ha podido cargar</h1><p>Actualiza la página o abre el enlace con Safari o Chrome.</p>";
+    console.error(error);
+  }
+})();
+</script>
+</body>
+</html>
